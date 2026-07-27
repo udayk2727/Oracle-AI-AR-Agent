@@ -1,0 +1,7 @@
+.env
+*.env
+*.ora
+.vscode/
+.DS_Store
+Thumbs.db
+*.log
