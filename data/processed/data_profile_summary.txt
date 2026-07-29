@@ -1,0 +1,8 @@
+Total rows: 1,067,371
+Unique invoices: 53,628
+Unique products: 5,305
+Unique customers: 5,942
+Countries: 43
+Cancelled rows: 19,494
+Negative quantity rows: 22,950
+Missing customer IDs: 243,007
