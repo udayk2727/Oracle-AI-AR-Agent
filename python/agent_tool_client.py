@@ -110,32 +110,43 @@ def get_customer_summary(
         result_cursor.close()
         call_cursor.close()
 def get_overdue_invoices(
-    connection: oracledb.Connection,
+    connection,
     customer_id: int,
-) -> list[dict[str, Any]]:
+) -> list[dict]:
     """Return overdue invoices for one customer."""
 
     cursor = connection.cursor()
-    output_cursor = cursor.var(oracledb.CURSOR)
+    result_cursor = connection.cursor()
 
     try:
+        print("Calling AR_AGENT_TOOLS.GET_OVERDUE_INVOICES...")
+
         cursor.callproc(
             "AR_AGENT_TOOLS.GET_OVERDUE_INVOICES",
             [
                 customer_id,
-                output_cursor,
+                result_cursor,
             ],
         )
 
-        returned_cursor = output_cursor.getvalue()
-        return cursor_to_records(returned_cursor)
+        print("PL/SQL procedure returned.")
+
+        columns = [
+            column[0]
+            for column in result_cursor.description
+        ]
+
+        rows = result_cursor.fetchmany(100)
+
+        print(f"Fetched {len(rows)} rows.")
+
+        return [
+            dict(zip(columns, row))
+            for row in rows
+        ]
 
     finally:
-        returned_cursor = output_cursor.getvalue()
-
-        if returned_cursor is not None:
-            returned_cursor.close()
-
+        result_cursor.close()
         cursor.close()
 
 def get_collection_queue(
