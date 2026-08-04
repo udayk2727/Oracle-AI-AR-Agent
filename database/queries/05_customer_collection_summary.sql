@@ -172,3 +172,44 @@ LEFT JOIN vw_ar_aging_detail a
 GROUP BY
     c.customer_id,
     c.customer_name;
+
+CREATE OR REPLACE VIEW vw_customer_risk_summary AS
+SELECT
+    customer_id,
+    customer_name,
+    total_invoice_count,
+    open_invoice_count,
+    total_invoiced,
+    total_paid,
+    total_outstanding,
+    maximum_days_past_due,
+    overdue_amount,
+    amount_over_90_days,
+    partially_paid_invoice_count,
+    risk_score,
+
+    CASE
+        WHEN risk_score >= 80
+            THEN 'CRITICAL'
+        WHEN risk_score >= 60
+            THEN 'HIGH'
+        WHEN risk_score >= 40
+            THEN 'MEDIUM'
+        WHEN risk_score > 0
+            THEN 'LOW'
+        ELSE 'NO RISK'
+    END AS risk_level,
+
+    CASE
+        WHEN risk_score >= 80
+            THEN 'ESCALATE ACCOUNT AND REVIEW COLLECTION STRATEGY'
+        WHEN risk_score >= 60
+            THEN 'PRIORITIZE CUSTOMER FOR COLLECTION CALL'
+        WHEN risk_score >= 40
+            THEN 'SEND PAYMENT REMINDER AND MONITOR'
+        WHEN risk_score > 0
+            THEN 'MONITOR OUTSTANDING BALANCE'
+        ELSE 'NO COLLECTION ACTION REQUIRED'
+    END AS recommended_action
+
+FROM vw_customer_collection_summary;
