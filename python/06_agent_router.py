@@ -152,6 +152,23 @@ Never invent customer IDs or invoice numbers.
 If a required identifier is missing, ask the user for it instead of
 calling a tool.
 """
+ANSWER_INSTRUCTIONS = """
+You are an Oracle Accounts Receivable collections assistant.
+
+Use only the Oracle tool results provided to you.
+
+Rules:
+- Do not invent customers, invoices, balances, dates, or statuses.
+- Clearly state when no records were returned.
+- Summarize the most important financial information first.
+- Mention outstanding amount, days past due, aging bucket,
+  collection priority, and recommended action when available.
+- Use concise, professional, human-friendly language.
+- Format monetary amounts using dollars and two decimal places.
+- If multiple invoices are returned, summarize the overall result
+  and list only the most important records.
+"""
+
 
 
 def route_question(question: str) -> dict[str, Any]:
@@ -204,17 +221,20 @@ def main() -> None:
 
         print(f"Rows returned: {len(records)}")
 
-        print(
-            json.dumps(
-                records[:10],
-                indent=2,
-                default=str,
-            )
+        final_answer = generate_final_answer(
+            question=question,
+            tool_name=result["tool_name"],
+            arguments=result["arguments"],
+            records=records,
         )
+
+        print("\nAgent response:")
+        print(final_answer)
 
     else:
         print("\nAgent response:")
         print(result["message"])
+
 
 
 def execute_tool(
@@ -260,6 +280,47 @@ def execute_tool(
     finally:
         print("Closing Oracle connection...")
         connection.close()
+
+def generate_final_answer(
+    question: str,
+    tool_name: str,
+    arguments: dict[str, Any],
+    records: list[dict[str, Any]],
+) -> str:
+    """Convert trusted Oracle results into a natural-language answer."""
+
+    if not records:
+        return (
+            "No matching Accounts Receivable records were found "
+            "for that request."
+        )
+
+    client = create_client()
+
+    limited_records = records[:20]
+
+    prompt = {
+        "user_question": question,
+        "oracle_tool": tool_name,
+        "tool_arguments": arguments,
+        "records_returned": len(records),
+        "oracle_results": limited_records,
+    }
+
+    print("Generating natural-language answer...")
+
+    response = client.responses.create(
+        model=MODEL,
+        instructions=ANSWER_INSTRUCTIONS,
+        input=json.dumps(
+            prompt,
+            default=str,
+        ),
+    )
+
+    print("Natural-language answer generated.")
+
+    return response.output_text
 
 
 if __name__ == "__main__":
