@@ -912,13 +912,6 @@ Enterprise monitoring
 
 ---
 
-## Interview Summary
-
-A concise explanation of the project is:
-
-> I built an end-to-end Oracle AI Accounts Receivable Agent using Oracle Database, SQL, PL/SQL, and Python. The solution loads and validates AR data, calculates payments and outstanding balances, performs aging analysis, identifies collection priorities, and manages agent-driven collection actions. For controlled actions such as payment reminders, the system creates a human approval request. After approval, an Action Orchestrator processes the notification and tracks the workflow through completion or failure. I also implemented retry and recovery concepts, audit tracking, collections reporting, and production-readiness validation. The overall goal is to reduce manual AR collection effort while maintaining governance and visibility over agent actions.
-
----
 
 ## Business Value
 
